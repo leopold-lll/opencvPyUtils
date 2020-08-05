@@ -25,7 +25,8 @@ class StoreVideo:
 		self.fourcc = cv2.VideoWriter_fourcc(*self.codec)	#extension standard
 		
 		# fourcc stands for "Four Character Code" it is a representation of the video file extensions. 
-		# More info at: http://www.fourcc.org/fourcc.php
+		# more info at: http://www.fourcc.org/fourcc.php
+		# discussion at: https://answers.opencv.org/question/68262/how-to-make-a-good-long-video-capture-with-videowriter/
 		self.show = show
 		self.width = width
 		self.fps = fps
@@ -34,13 +35,14 @@ class StoreVideo:
 		self.h = None
 		self.w = None
 
-	def addFrame(self, frame: "numpy.ndarray", fps: int=None) -> bool:
+	def addFrame(self, frame: "numpy.ndarray", fps: int=None, isColor: bool=True) -> bool:
 		""" 
 		Add the given frame to the video.
   
 		Parameters: 
 		frame (numpy.ndarray):	The frame of the camera that need to be add to the video.
-		fps (int):				The fps rate of generated video (it will be consideronly at the first call)
+		fps (int):				The fps rate of generated video (it will be consideronly at the first call).
+		isColor (bool):			If the passed frame is colored, False means grayscale.
 
 		Returns:
 		bool: True if the user ask to stop ('q' button when frames are shown), False otherwise.
@@ -56,7 +58,7 @@ class StoreVideo:
 			
 			# store the image dimensions, initialize the video writer, and construct the zeros array
 			(self.h, self.w) = frame.shape[:2]
-			self.writer = cv2.VideoWriter(self.output, self.fourcc, self.fps, (self.w, self.h), True)
+			self.writer = cv2.VideoWriter(self.output, self.fourcc, self.fps, (self.w, self.h), isColor)
 
 		# write the output frame to file
 		self.writer.write(frame)
@@ -70,6 +72,10 @@ class StoreVideo:
 			if key == ord("q"):
 				return True
 		return False
+
+	def release(self) -> None:
+		""" Release the file writer. """
+		self.writer.release()
 
 
 #if __name__ == "__main__":
