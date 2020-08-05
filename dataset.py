@@ -1,5 +1,5 @@
 # import the necessary packages
-from abc import ABC, abstractmethod # ABC = Abstract Method Class
+from abc import ABC # ABC = Abstract Method Class
 from imutils import paths
 import random
 import os

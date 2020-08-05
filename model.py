@@ -1,13 +1,19 @@
 # import the necessary packages
+from abc import ABC # ABC = Abstract Method Class
 import cv2
 
 ################################################################################################################
-############################     Model Super Class     #########################################################
+############################     Model Super Class        ######################################################
 ################################################################################################################
-class Model:
-	def __init__(self, net: "cv2.dnn.net", layer: str=None) -> None:
-		self.setNetwork(net)
-		self.setLayer(layer)
+class Model(ABC):
+	#variables
+	modelPath:  str=None		#path to the model
+	modelPath2: str=None		#path to the second part of the model
+	layer: str=None				#the name of the layer where to end the DNN
+	net: "cv2.dnn.net"=None		#the opencv network model
+
+	def __init__():
+		pass
 
 	def setNetwork(self, net: "cv2.dnn.net") -> None:
 		""" Set the network given. """
@@ -27,12 +33,12 @@ class Model:
 
 	def forward(self) -> list:
 		""" Process the given input through the DNN and return a list of float that is the feature vector (encodings) of the input blob. """
-		return( self.net.forward(self.layer) )
+		return self.net.forward(self.layer) 
 	
 	def feed(self, blob) -> list:
 		""" Do in one function the setInput and forward pass. """
 		self.setInput(blob)
-		return( self.forward() )
+		return self.forward()
 
 	def getLayerNames(self, show: bool=False) -> list:
 		""" Return and eventually show the list of layers of the model. """
@@ -43,39 +49,31 @@ class Model:
 			print("\n")
 		return(layerNames)
 
-############################      ResNet50 Model     ######################################################
-class ResNet50:
-	def __init__(self, modelPath: str="../models/resnet50-caffe2/resnet50-caffe2.onnx", layer: str="OC2_DUMMY_0"):
+################################################################################################################
+############################     Image Classification     ######################################################
+################################################################################################################
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>     ResNet50 Model           <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+class ResNet50(Model):
+	def __init__(self, 
+			  modelPath: str="../models/resnet50-caffe2/resnet50-caffe2.onnx", 
+			  layer: str="OC2_DUMMY_0"):
+
 		self.modelPath = modelPath
 		self.layer = layer
 		self.net = cv2.dnn.readNetFromONNX(self.modelPath)
-		self.model = Model(self.net, self.layer)
 
-	def blob(self, image) -> "blob":
-		return self.model.blob(image)
 
-	def feed(self, blob) -> list:
-		return self.model.feed(blob)
-
-	def getLayerNames(self, show: bool=False):
-		return self.model.getLayerNames(show)
-
-############################     GoogleNet Model     ######################################################
-class GoogleNet:
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>     GoogleNet Model          <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+class GoogleNet(Model):
 	def __init__(self, 
-			modelPath: str=["../models/googleNet/bvlc_googlenet.prototxt", "../models/googleNet/bvlc_googlenet.caffemodel"], 
-			layer: str="pool5/7x7_s1"):
+			  modelPath: str="../models/googleNet/bvlc_googlenet.prototxt",
+			  modelPath2: str="../models/googleNet/bvlc_googlenet.caffemodel",
+			  layer: str="pool5/7x7_s1"):
+
 		self.modelPath = modelPath
+		self.modelPath2 = modelPath2
 		self.layer = layer
-		self.net = cv2.dnn.readNetFromCaffe(self.modelPath[0], self.modelPath[1])
-		self.model = Model(self.net, self.layer)
+		self.net = cv2.dnn.readNetFromCaffe(self.modelPath, self.modelPath2)
 
-	def blob(self, image) -> "blob":
-		return self.model.blob(image)
-
-	def feed(self, blob) -> list:
-		return self.model.feed(blob)
-
-	def getLayerNames(self, show: bool=False):
-		return self.model.getLayerNames(show)
 
