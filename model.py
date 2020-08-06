@@ -220,7 +220,7 @@ class ResNet50(Model):
 		return cv2.dnn.blobFromImage(image=image, scalefactor=1, size=(224, 224), mean=(0.485, 0.456, 0.406))
 
 	def processDnnOutput(self, output, _1=None, _2=None, _3=None) -> "list":
-		return output.tolist()
+		return output[0].tolist()
 
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>     GoogleNet Model          <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -244,6 +244,6 @@ class GoogleNet(Model):
 
 	def processDnnOutput(self, output, _1=None, _2=None, _3=None) ->"list":
 		vect = [ [ el[0][0] for el in enc ] for enc in output ]
-		return vect
+		return vect[0]
 
 ################################################################################################################

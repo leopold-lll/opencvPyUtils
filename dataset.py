@@ -136,3 +136,77 @@ class M100Dataset(Dataset):
 		queryPath = list(paths.list_images(self.datasetPath))[queryNum]
 		print("\nQUERY name:{}, id:{}, path:{}".format(queryNum, queryNum//10, queryPath))
 		return((queryNum//10, queryPath))
+
+
+################################################################################################################
+############################     Encoding Class             ####################################################
+################################################################################################################
+import pickle
+import pprint
+class DatabaseOfEncodings:
+	databasePath = {
+		#classifier: path of all the encodings
+		#The negativePeople dataset contain 518 people/keys, and 10 images/feature vectors for each one, for a total of 5180 imgs
+		"googleNet": "../imagesIn/negativePeople_dataset/googleNet_negativePeople_fullDataset.pkl",
+		"resNet50":  "../imagesIn/negativePeople_dataset/resNet50_negativePeople_fullDataset.pkl"
+	}
+
+	def __init__(self, classifierType: str="resNet50"):
+		if classifierType not in self.databasePath:
+			print("[INFO] Warning unknown classifier type...")
+		else:
+			#set main variables
+			self.classifier = classifierType
+			self.encodingsPath = self.databasePath[classifierType]
+
+			#load a dict with all the encodings of the NegativePeople dataset
+			self.encodings = pickle.loads(open(self.encodingsPath, "rb").read())
+			self.keys = list(self.encodings.keys())
+
+
+	def getNEncodings(self, n: int=1) -> "list of list":
+		""" This function take n encodings from the dataset (returned as a list of list) and remove them. """
+
+		#each run is independent from each other (there is only a global view)
+		#note: when all encodings are used this function become an empty loop
+		elements = []
+		for _ in range(n):
+			print("loop:", _)
+			#after ~5180 (518keys*10images per key) loops all will fall here
+			if len(self.keys)<=0:
+				print("No more elements")
+
+			else:
+				#get a random key position (lvl 1)
+				indxOut = random.randint(0, len(self.keys)-1)
+				#use self.keys to access an existing position (a person=out)
+				elOut = self.encodings[ self.keys[indxOut] ]
+
+				#get a random indx for the chosen person (lvl 2)
+				indxIn = random.randint(0, len(elOut)-1)
+				#get the image=in (feature vector) associated to the index
+				elIn = elOut[indxIn]	#this is the value to return
+				elements.append(elIn[0][0].tolist())
+
+				#remove the chosen image to do not pick it up twice
+				#move it to the last position and then reduce the list size
+				elOut[indxIn], elOut[-1] = elOut[-1], elOut[indxIn]	#easiest way to do a swap in python
+				self.encodings[ self.keys[indxOut]] = elOut[:-1] #delete the extracted element (In)
+
+				#if the list is empty now remove it also
+				if len(self.encodings[ self.keys[indxOut]])==0:
+					del self.encodings[ self.keys[indxOut]]	#delete from the dictionary
+					self.__removeKey(indxOut)				#delete from the existing keys
+		return elements
+
+	def __removeKey(self, i: int) -> None:
+		""" Remove the element at the position i, in the self.keys list. """
+		if 0<=i and i<len(self.keys):
+			#first move to the last position, and second reduce the list dimension
+			self.keys[i] = self.keys[-1]
+			self.keys = self.keys[:-1]
+
+		
+
+		
+
