@@ -34,6 +34,7 @@ class NegativePeopleDataset(Dataset):
 			self.nImgs = self.N_IMAGES*nTestDir
 			print("Warning: not enoght images in the dataset (set to", self.nImgs, ")")
 
+	### Private functions
 	def __labelFromPath(self, pth):
 		return( int(pth.split("/")[-1].split(".")[0]) )
 
@@ -47,6 +48,7 @@ class NegativePeopleDataset(Dataset):
 		
 		return(labelsAndPaths)
 
+	### Public functions
 	def getLabelsAndPaths(self) -> "list of couple":
 		labelsAndPaths = []
 		#take the same number of images from each of the 9 folders of the dataset (the 10th is used as testing folder)
@@ -77,7 +79,7 @@ class NegativePeopleDataset(Dataset):
 		print("generated query:", (queryNum, queryPath))
 		return((queryNum, queryPath))
 
-############################     Street People dataset functions     ###########################################
+############################     Street People dataset functions       #########################################
 class StreetPeopleDataset(Dataset):
 	def __init__(self, nImgs: int=20) -> None:
 		self.datasetPath = "../imagesIn/streetPeople_dataset"
@@ -103,7 +105,7 @@ class StreetPeopleDataset(Dataset):
 		queryPath = list(paths.list_images(camera))[queryNum]
 		return((queryNum, queryPath))
 
-############################     m100 dataset functions     ####################################################
+############################     M100 dataset functions                #########################################
 class M100Dataset(Dataset):
 	def __init__(self, nImgs: int=20) -> None:
 		self.N_IMAGES = 80 #the number of images in the dataset (do not change)
