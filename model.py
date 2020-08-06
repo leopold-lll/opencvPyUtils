@@ -57,7 +57,6 @@ class Model(ABC):
 		#conversion with np.array:
 		#to   NP: npList = np.array(myList)
 		#from NP: myList = npList.tolist()
-		#todo: implement for the sub classes
 	
 	def feed(self, image, confidence: float=0.5) -> "list or list of list":
 		""" Do in one function: blob, setInput, forward pass and processDnnOutput. """
@@ -138,11 +137,11 @@ class YOLOv3(Model):
 					# use the center (x, y)-coordinates to derive the top and left corner of the bounding box
 					x = int(centerX - (width / 2))
 					y = int(centerY - (height / 2))
-
+					
 					# update our list of bounding box coordinates, confidences and classes
-					boxes.append([x, y, int(width), int(height)])
-					confidences.append(float(confidence))
 					classes.append(self.names[classID])
+					confidences.append(float(confidence))
+					boxes.append([x, y, int(width), int(height)])	#aka: x, y, w, h
 		
 		#apply non-maxima suppression to suppress weak, overlapping bounding boxes
 		idxs = cv2.dnn.NMSBoxes(boxes, confidences, confThresh, nmsThresh)
@@ -155,7 +154,6 @@ class YOLOv3(Model):
 
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>     MobileNet SSD            <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 class MobileNetSSD(Model):
-	#todo: check correctness
 	def __init__(self, 
 			  modelPath:  str="../models/mobileNet_SSD/MobileNetSSD_deploy.prototxt", 
 			  modelPath2: str="../models/mobileNet_SSD/MobileNetSSD_deploy.caffemodel", 
@@ -179,10 +177,26 @@ class MobileNetSSD(Model):
 		return blob
 
 	def processDnnOutput(self, output, h: int, w: int, confThresh: float=0.5) -> "list of list":
-		print("post-processing SSD")
+		detections = []
 
+		# loop over the detections
+		for i in np.arange(0, output.shape[2]):
+			# extract the confidence (i.e., probability) associated with the prediction
+			confidence = output[0, 0, i, 2]
 
-		return output
+			# filter out weak detections by ensuring the `confidence` is greater than the minimum confidence
+			if confidence > confThresh:
+				# extract the index of the class label from the `detections`, 
+				# then compute the (x, y)-coordinates of the bounding box for the object
+				idx = int(output[0, 0, i, 1])
+
+				box = output[0, 0, i, 3:7] * np.array([w, h, w, h])
+				(startX, startY, endX, endY) = box.astype("int")
+				box = [startX, startY, endX-startX, endY-startY]	#aka: x, y, w, h
+
+				detections.append([ self.names[idx], confidence, box ])
+
+		return detections
 
 ################################################################################################################
 ############################     Image Classification     ######################################################
